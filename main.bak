@@ -31,7 +31,7 @@
   (TNum)
   (TFun arg ret))
 
-;################################ Pregunta 1 ###############################
+;################################ Pregunta 1 ###########################
 
 ;; parse-type :: type -> Type
 ;; Convierte type en Type
@@ -49,8 +49,7 @@
     [(? number?) (num s-expr)]
     [(? symbol?) (id s-expr)]
     [(list '+ l r) (add (parse l) (parse r))]
-    [(list '- l r) (sub (parse l) (parse r))]
-    [(list 'fun (list x : se) : t e) (fun 'x (parse-type se) (parse e) (parse-type t))]))
+    [(list '- l r) (sub (parse l) (parse r))]))
 
 (define (deBruijn expr)#f)
 
