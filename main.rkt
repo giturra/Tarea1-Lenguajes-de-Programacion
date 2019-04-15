@@ -38,9 +38,8 @@
 (define (parse-type s-expr)
   (match s-expr
     [(== 'Num) (TNum)]
-    [(list t1 -> ) (error "Parse error")]
-    [(list -> t1) (error "Parse error")]
-    [(list t1 -> t2) (TFun (parse-type t1) (parse-type t2))]))
+    [(list t1 -> t2) (TFun (parse-type t1) (parse-type t2))]
+    [e (error "Parse error")]))
 
 ;; parse :: s-expr -> Expr
 ;; Convierte s-expr en Expr
@@ -50,7 +49,20 @@
     [(? symbol?) (id s-expr)]
     [(list '+ l r) (add (parse l) (parse r))]
     [(list '- l r) (sub (parse l) (parse r))]
-    [(list 'fun (list x : se) : t e) (fun 'x (parse-type se) (parse e) (parse-type t))]))
+    [(list 'fun (list x : se) e) (fun 'x (parse-type se) (parse e) #f)]
+    [(list 'fun (list x : se) : t e) (fun 'x (parse-type se) (parse e) (parse-type t))]
+    [(list 'with (list x : t1 e1) e2) (app (fun 'x (parse-type t1) (parse e2) #f) (parse  e1))]
+   ))
+
+;; prettify :: Type -> type
+;; Convierte un Type en type, como una funcion inversa a parse-type
+(define (prettify T-type)
+  (match T-type
+    [(TNum) 'Num]
+    [(TFun arg ret) (list (prettify arg) '-> (prettify ret))]))
+
+
+;################################ Pregunta 2 ###############################
 
 (define (deBruijn expr)#f)
 
