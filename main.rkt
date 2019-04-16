@@ -78,8 +78,14 @@
     [(tEnv id val env) (if (symbol=? id x) val (env-lookup x env))]))
 
 
-
-
+;; typeof-with-type-env 
+(define (typeof-with-type-env expr type-env)
+  (match expr
+    [(num n) (TNum)]
+    [(id s) (env-lookup s type-env)]
+    [(fun id targ body tbody)
+     (def body-value (typeof-with-type-env body  (extend-env id targ type-env)))
+     (TFun targ body-value)]))
 
 ;; typeof :: Expr -> Type
 (define (typeof expr) #f)
