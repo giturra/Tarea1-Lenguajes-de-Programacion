@@ -64,11 +64,31 @@
 
 ;################################ Pregunta 2 ###############################
 
+(deftype TypeEnv
+  (emptEnv)
+  (tEnv id val env))
+
+(define empty-env (emptEnv))
+
+(define extend-env tEnv)
+
+(define (env-lookup x env)
+  (match env
+    [(emptEnv) (error 'env-lookup "free identifier: ~a" x)]
+    [(tEnv id val env) (if (symbol=? id x) val (env-lookup x env))]))
+
+
+
+
+
+;; typeof :: Expr -> Type
+(define (typeof expr) #f)
+
 (define (deBruijn expr)#f)
 
 (define (compile expr) #f)
 
-(define (typeof expr) #f)
+
 
 (define (typecheck s-expr) #f)
 
