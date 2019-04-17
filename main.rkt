@@ -106,12 +106,11 @@
 (define (typecheck s-expr)
   (prettify (typeof(parse s-expr))))
 
+
+
+
 (define (deBruijn expr)#f)
 
 (define (compile expr) #f)
-
-
-
-
 
 (define (typed-compile s-expr) #f)
