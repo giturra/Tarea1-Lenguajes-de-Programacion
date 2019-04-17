@@ -52,6 +52,7 @@
     [(list 'fun (list x : se) e) (fun 'x (parse-type se) (parse e) #f)]
     [(list 'fun (list x : se) : t e) (fun 'x (parse-type se) (parse e) (parse-type t))]
     [(list 'with (list x : t1 e1) e2) (app (fun 'x (parse-type t1) (parse e2) #f) (parse  e1))]
+    [(list fun-id arg-expr) (app (parse fun-id) (parse arg-expr))]
    ))
 
 ;; prettify :: Type -> type
@@ -83,12 +84,20 @@
   (match expr
     [(num n) (TNum)]
     [(id s) (env-lookup s type-env)]
-    [(fun id targ body tbody)
+    [(add l r)
+     (def tl (typeof-with-type-env l type-env))
+     (def tr (typeof-with-type-env r type-env)) (TNum)]
+    [(sub l r)
+     (def tl (typeof-with-type-env l type-env))
+     (def tr (typeof-with-type-env r type-env)) (TNum)]
+    [(fun id targ body #f)
      (def body-value (typeof-with-type-env body  (extend-env id targ type-env)))
-     (TFun targ body-value)]))
+     (TFun targ body-value)]
+  ))
 
 ;; typeof :: Expr -> Type
-(define (typeof expr) #f)
+(define (typeof expr)
+  (typeof-with-type-env expr (emptEnv)))
 
 (define (deBruijn expr)#f)
 

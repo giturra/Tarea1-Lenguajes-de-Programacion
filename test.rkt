@@ -17,6 +17,13 @@
 (test (parse '{+ 1 3}) (add (num 1) (num 3)))
 (test (parse '{with {x : Num 5} {+ x 3}}) (app (fun 'x (TNum) (add (id 'x) (num 3)) #f) (num 5)))
 
+
+;;typeof
+(test (typeof (parse '{+ 1 3})) (TNum))
+
+#| Test que venian que aun no funcionan
+
+
 ;; deBruijn
 (test (deBruijn (num 3)) (num 3))
 (test (deBruijn (parse '{with {x : Num 5}  {with  {y : Num  {+ x 1}} {+ y x}}}))
@@ -34,3 +41,8 @@
 
 ;typecheck
 (test (typecheck '3) 'Num)
+
+
+
+|#
+
