@@ -31,7 +31,7 @@
   (TNum)
   (TFun arg ret))
 
-;################################ Pregunta 1 ###############################
+;################################ Pregunta 1 ################################
 
 ;; parse-type :: type -> Type
 ;; Convierte type en Type
@@ -75,7 +75,7 @@
 
 (define (env-lookup x env)
   (match env
-    [(emptEnv) (error 'env-lookup "free identifier: ~a" x)]
+    [(emptEnv) (error "Type error: free identifier:" x)]
     [(tEnv id val env) (if (symbol=? id x) val (env-lookup x env))]))
 
 
@@ -93,11 +93,18 @@
     [(fun id targ body #f)
      (def body-value (typeof-with-type-env body  (extend-env id targ type-env)))
      (TFun targ body-value)]
+    [(fun id targ body tbody)
+     (def body-value (typeof-with-type-env body  (extend-env id targ type-env)))
+     (TFun targ body-value)]
+    [(app fun-id arg-expr) #f]
   ))
 
 ;; typeof :: Expr -> Type
 (define (typeof expr)
   (typeof-with-type-env expr (emptEnv)))
+
+(define (typecheck s-expr)
+  (prettify (typeof(parse s-expr))))
 
 (define (deBruijn expr)#f)
 
@@ -105,6 +112,6 @@
 
 
 
-(define (typecheck s-expr) #f)
+
 
 (define (typed-compile s-expr) #f)

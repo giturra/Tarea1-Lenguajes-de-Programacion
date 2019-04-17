@@ -21,6 +21,12 @@
 ;;typeof
 (test (typeof (parse '{+ 1 3})) (TNum))
 
+
+;typecheck
+(test (typecheck '3) 'Num)
+(test (typecheck  '{fun {f : Num} : Num 10}) '(Num -> Num))
+
+
 #| Test que venian que aun no funcionan
 
 
@@ -36,12 +42,6 @@
 
 ;;typeof
 (test (typeof (parse '{+ 1 3})) (TNum))
-
-
-
-;typecheck
-(test (typecheck '3) 'Num)
-
 
 
 |#
