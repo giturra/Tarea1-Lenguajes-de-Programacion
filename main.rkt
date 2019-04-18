@@ -96,7 +96,9 @@
     [(fun id targ body tbody)
      (def body-value (typeof-with-type-env body  (extend-env id targ type-env)))
      (TFun targ body-value)]
-    [(app fun-id arg-expr) #f]
+    [(app fun-id arg-expr) (def tfun-id (typeof-with-type-env arg-expr type-env))
+                           (def return-type (typeof-with-type-env arg-expr type-env))
+                           return-type]
   ))
 
 ;; typeof :: Expr -> Type
