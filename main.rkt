@@ -31,85 +31,109 @@
   (TNum)
   (TFun arg ret))
 
-;################################ Pregunta 1 ################################
 
-;; parse-type :: type -> Type
-;; Convierte type en Type
+;; ************************************************* Pregunta 1 *************************************************
+
+
 (define (parse-type s-expr)
   (match s-expr
-    [(== 'Num) (TNum)]
-    [(list t1 -> t2) (TFun (parse-type t1) (parse-type t2))]
-    [e (error "Parse error")]))
+    ['Num (TNum)]
+    [(list type1 -> type2) (TFun (parse-type type1) (parse-type type2))]
+    [e (error "¨Parse error")]))
 
-;; parse :: s-expr -> Expr
-;; Convierte s-expr en Expr
 (define (parse s-expr)
   (match s-expr
     [(? number?) (num s-expr)]
     [(? symbol?) (id s-expr)]
     [(list '+ l r) (add (parse l) (parse r))]
-    [(list '- l r) (sub (parse l) (parse r))]
-    [(list 'fun (list x : se) e) (fun 'x (parse-type se) (parse e) #f)]
-    [(list 'fun (list x : se) : t e) (fun 'x (parse-type se) (parse e) (parse-type t))]
-    [(list 'with (list x : t1 e1) e2) (app (fun 'x (parse-type t1) (parse e2) #f) (parse  e1))]
-    [(list fun-id arg-expr) (app (parse fun-id) (parse arg-expr))]
-   ))
+    [(list '- l r) (add (parse l) (parse r))]
+    [(list 'fun (list iden : targ) body)
+     (fun iden (parse-type targ) (parse body) #f)]
+    [(list 'fun (list iden : targ) : tbody body)
+     (fun iden (parse-type targ) (parse body) (parse-type tbody))]
+    [(list 'with (list expr1 : type1 expr2) expr3)
+     (app (fun expr1 (parse-type type1) (parse expr3) #f) (parse expr2))]
+    [(list e1 e2) (app (parse e1) (parse e2))]
+))
 
-;; prettify :: Type -> type
-;; Convierte un Type en type, como una funcion inversa a parse-type
-(define (prettify T-type)
-  (match T-type
+(define (prettify type)
+  (match type
     [(TNum) 'Num]
     [(TFun arg ret) (list (prettify arg) '-> (prettify ret))]))
 
-
-;################################ Pregunta 2 ###############################
+;; ************************************************* Pregunta 2 *************************************************
 
 (deftype TypeEnv
-  (emptEnv)
-  (tEnv id val env))
+  (emptyEnv)
+  (tEnv id type env))
 
-(define empty-env (emptEnv))
+(define empty-env (emptyEnv))
 
 (define extend-env tEnv)
 
-(define (env-lookup x env)
-  (match env
-    [(emptEnv) (error "Type error: free identifier:" x)]
-    [(tEnv id val env) (if (symbol=? id x) val (env-lookup x env))]))
+(define (lookup-env x type-env)
+  (match type-env
+    [(emptyEnv) (error "Type error: free identifier:" x)]
+    [(tEnv id type env) (if (symbol=? id x)
+                            type
+                            (lookup-env x env))]))
 
-
-;; typeof-with-type-env 
-(define (typeof-with-type-env expr type-env)
+(define (typeof-with-type-env expr env)
   (match expr
     [(num n) (TNum)]
-    [(id s) (env-lookup s type-env)]
-    [(add l r)
-     (def tl (typeof-with-type-env l type-env))
-     (def tr (typeof-with-type-env r type-env)) (TNum)]
-    [(sub l r)
-     (def tl (typeof-with-type-env l type-env))
-     (def tr (typeof-with-type-env r type-env)) (TNum)]
-    [(fun id targ body #f)
-     (def body-value (typeof-with-type-env body  (extend-env id targ type-env)))
-     (TFun targ body-value)]
-    [(fun id targ body tbody)
-     (def body-value (typeof-with-type-env body  (extend-env id targ type-env)))
-     (TFun targ body-value)]
-    [(app fun-id arg-expr) (def tfun-id (typeof-with-type-env arg-expr type-env))
-                           (def return-type (typeof-with-type-env arg-expr type-env))
-                           return-type]
-  ))
-
-;; typeof :: Expr -> Type
-(define (typeof expr)
-  (typeof-with-type-env expr (emptEnv)))
+    [(id s) (lookup-env s env)]
+    [(add l r) (def tl (typeof-with-type-env l env))
+               (def tr (typeof-with-type-env r env))
+               (if (not (TNum? tl)) (error
+                                     (string-append "Type error in expression fun position 1: expected: Num found "
+                                                  (~a (prettify tl))))
+                                     (void))
+               (if (not (TNum? tr)) (error
+                                     (string-append "Type error in expression fun position 2: expected: Num found "
+                                                  (~a (prettify tr))))
+                                     (void))
+               (TNum)
+    ]
+    [(sub l r) (TNum)]
+    [(fun id targ body #f) (def new-env (extend-env id targ env))
+                           (def ctbody (typeof-with-type-env body new-env))
+                           (TFun targ ctbody)
+    ]
+    [(fun id targ body tbody) (def new-env (extend-env id targ env))
+                              (def ctbody (typeof-with-type-env body new-env))
+                              (if (equal? ctbody tbody)
+                                  (TFun targ tbody)
+                                  (error
+                                   (string-append "Type error in expression fun position 1: expected: "
+                                                  (~a (prettify tbody)) " found "
+                                                  (~a (prettify ctbody)))))
+    ]
+    [(app fun-id arg-expr) (def rt (typeof-with-type-env fun-id env))
+                           (if (not (TFun? rt))
+                               (error
+                                   (string-append "Type error in expression app position 1: expected (T -> S) found "
+                                                  (~a (prettify rt))))
+                               (void))
+                           (def (TFun art ret) rt)
+                           (def bt (typeof-with-type-env arg-expr env))
+                           (if (not (equal? art bt))
+                                   (error
+                                   (string-append "Type error in expression fun position 1: expected: "
+                                                  (~a (prettify art)) " found "
+                                                  (~a (prettify bt))))
+                               (void))
+                           ret
+    ]       
+))
 
 (define (typecheck s-expr)
-  (prettify (typeof(parse s-expr))))
+  (prettify (typeof (parse s-expr))))
+
+(define (typeof expr)
+  (typeof-with-type-env expr (emptyEnv)))
 
 
-
+;; ************************************************* Pregunta 3 *************************************************
 
 (define (deBruijn expr)#f)
 
