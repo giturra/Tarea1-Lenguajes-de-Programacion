@@ -94,7 +94,18 @@
                                      (void))
                (TNum)
     ]
-    [(sub l r) (TNum)]
+    [(sub l r) (def tl (typeof-with-type-env l env))
+               (def tr (typeof-with-type-env r env))
+               (if (not (TNum? tl)) (error
+                                     (string-append "Type error in expression fun position 1: expected: Num found "
+                                                  (~a (prettify tl))))
+                                     (void))
+               (if (not (TNum? tr)) (error
+                                     (string-append "Type error in expression fun position 2: expected: Num found "
+                                                  (~a (prettify tr))))
+                                     (void))
+               (TNum)
+    ]
     [(fun id targ body #f) (def new-env (extend-env id targ env))
                            (def ctbody (typeof-with-type-env body new-env))
                            (TFun targ ctbody)
