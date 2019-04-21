@@ -34,7 +34,8 @@
 
 ;; ************************************************* Pregunta 1 *************************************************
 
-
+;; parse-type: <type> -> Type
+;; 
 (define (parse-type s-expr)
   (match s-expr
     ['Num (TNum)]
@@ -156,7 +157,7 @@
 
 (define (lookup-index-env x val env)
   (match env
-    [(mtEnv) (error "free identifier" x)]
+    [(mtEnv) (error "Free identifier:" x)]
     [(iEnv id next)
      (if (equal? id x)
          (acc val)
@@ -167,18 +168,23 @@
   (match expr
     [(num n) (num n)]
     [(id s) (lookup-index-env s 0 env)]
-    [(add l r) (add (deBruijn-with-index-env l env) (deBruijn-with-index-env r env))]
-    [(sub l r) (add (deBruijn-with-index-env l env) (deBruijn-with-index-env r env))]
+    [(add l r) (add (deBruijn-with-index-env l env)
+                    (deBruijn-with-index-env r env))]
+    [(sub l r) (add (deBruijn-with-index-env l env)
+                    (deBruijn-with-index-env r env))]
     [(fun id targ body tbody) (def new-env (extend-index-env id env))
                               (fun-db (deBruijn-with-index-env body new-env))
     ]
-    [(app fun-id arg-expr) (app (deBruijn-with-index-env fun-id env) (deBruijn-with-index-env arg-expr env))
+    [(app fun-id arg-expr) (app (deBruijn-with-index-env fun-id env)
+                                (deBruijn-with-index-env arg-expr env))
     ]))
 
 
 (define (deBruijn expr)
   (deBruijn-with-index-env expr (mtEnv)))
 
-(define (compile expr) #f)
+(define (compile expr)
+  (match expr
+    [(num n) (cons (INT-CONST n) '())]))
 
 (define (typed-compile s-expr) #f)
