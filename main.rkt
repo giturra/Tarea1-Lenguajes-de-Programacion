@@ -183,8 +183,20 @@
 (define (deBruijn expr)
   (deBruijn-with-index-env expr (mtEnv)))
 
-(define (compile expr)
+
+(define (compile-with-rest expr rest)
   (match expr
-    [(num n) (cons (INT-CONST n) '())]))
+    [(acc n) (cons (ACCESS n) rest)]
+    [(num n) (cons (INT-CONST n) rest)]
+    [(add l r) (compile-with-rest r (compile-with-rest l (cons (ADD) rest)))]
+    [(sub l r) (compile-with-rest r (compile-with-rest l (cons (SUB) rest)))]
+    [(fun-db body) (cons (CLOSURE (compile-with-rest body (cons (RETURN) '()))) rest)]
+    [(app fun-id arg-expr) (compile-with-rest arg-expr (compile-with-rest fun-id (cons (APPLY) '())))]    
+))
+
+(define (compile expr)
+  (compile-with-rest expr '()))
+
+
 
 (define (typed-compile s-expr) #f)
