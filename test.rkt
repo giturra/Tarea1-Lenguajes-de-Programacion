@@ -123,6 +123,31 @@
 
 
 
+
+;; DEBRUIJN
+(println "========= deBruijn Tests ========")
+(test (deBruijn (parse '{+ 2 4})) (add (num 2) (num 4)))
+(test (deBruijn (parse '4)) (num 4))
+(test/exn (deBruijn (parse '{+ x 4})) "Free identifier: x")
+(test (deBruijn (parse '{+ 2 {+ 3 4}})) (add (num 2) (add (num 3) (num 4))))
+(test (deBruijn (parse '{fun {x : Num} : Num x})) (fun-db (acc 0)))
+(test (deBruijn (parse '{{fun {x : Num} : Num x} 2})) (app (fun-db (acc 0)) (num 2)))
+(test (deBruijn (parse '{with {x : Num 7}
+                              {with {y : Num 8}
+                                    {with {z : Num y}
+                                          {+ x z}
+                                          }}}))
+      (app (fun-db
+        (app (fun-db
+          (app (fun-db
+                (add (acc 2) (acc 0)))
+          (acc 0)))
+        (num 8)))
+      (num 7))
+      )
+
+
+
 #|
 
 ;; deBruijn

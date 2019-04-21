@@ -146,7 +146,38 @@
 
 ;; ************************************************* Pregunta 3 *************************************************
 
-(define (deBruijn expr)#f)
+(deftype IndexEnv
+  (mtEnv)
+  (iEnv id env))
+
+(define empty-index-env (mtEnv))
+
+(define extend-index-env iEnv)
+
+(define (lookup-index-env x val env)
+  (match env
+    [(mtEnv) (error "free identifier" x)]
+    [(iEnv id next)
+     (if (equal? id x)
+         (acc val)
+         (lookup-index-env x (add1 val) next))]))
+
+
+(define (deBruijn-with-index-env expr env)
+  (match expr
+    [(num n) (num n)]
+    [(id s) (lookup-index-env s 0 env)]
+    [(add l r) (add (deBruijn-with-index-env l env) (deBruijn-with-index-env r env))]
+    [(sub l r) (add (deBruijn-with-index-env l env) (deBruijn-with-index-env r env))]
+    [(fun id targ body tbody) (def new-env (extend-index-env id env))
+                              (fun-db (deBruijn-with-index-env body new-env))
+    ]
+    [(app fun-id arg-expr) (app (deBruijn-with-index-env fun-id env) (deBruijn-with-index-env arg-expr env))
+    ]))
+
+
+(define (deBruijn expr)
+  (deBruijn-with-index-env expr (mtEnv)))
 
 (define (compile expr) #f)
 
